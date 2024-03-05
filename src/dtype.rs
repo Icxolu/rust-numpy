@@ -10,6 +10,7 @@ use num_traits::{Bounded, Zero};
 use pyo3::{
     exceptions::{PyIndexError, PyValueError},
     ffi::{self, PyTuple_Size},
+    pybacked::PyBackedStr,
     pyobject_native_type_extract, pyobject_native_type_named,
     types::{PyAnyMethods, PyDict, PyDictMethods, PyTuple, PyType},
     AsPyPointer, Borrowed, Bound, PyAny, PyNativeType, PyObject, PyResult, PyTypeInfo, Python,
@@ -30,19 +31,19 @@ pub use num_complex::{Complex32, Complex64};
 /// # Example
 ///
 /// ```
-/// use numpy::{dtype, get_array_module, PyArrayDescr};
-/// use numpy::pyo3::{types::IntoPyDict, Python};
+/// use numpy::{dtype_bound, get_array_module, PyArrayDescr, PyArrayDescrMethods};
+/// use numpy::pyo3::{types::{IntoPyDict, PyAnyMethods}, Python};
 ///
 /// Python::with_gil(|py| {
-///     let locals = [("np", get_array_module(py).unwrap())].into_py_dict(py);
+///     let locals = [("np", get_array_module(py).unwrap())].into_py_dict_bound(py);
 ///
-///     let dt: &PyArrayDescr = py
-///         .eval("np.array([1, 2, 3.0]).dtype", Some(locals), None)
+///     let dt = py
+///         .eval_bound("np.array([1, 2, 3.0]).dtype", Some(&locals), None)
 ///         .unwrap()
-///         .downcast()
+///         .downcast_into::<PyArrayDescr>()
 ///         .unwrap();
 ///
-///     assert!(dt.is_equiv_to(dtype::<f64>(py)));
+///     assert!(dt.is_equiv_to(&dtype_bound::<f64>(py)));
 /// });
 /// ```
 ///
@@ -337,12 +338,8 @@ impl PyArrayDescr {
     /// Equivalent to [`numpy.dtype.names`][dtype-names].
     ///
     /// [dtype-names]: https://numpy.org/doc/stable/reference/generated/numpy.dtype.names.html
-    pub fn names(&self) -> Option<Vec<&str>> {
-        if !self.has_fields() {
-            return None;
-        }
-        let names = unsafe { Borrowed::from_ptr(self.py(), (*self.as_dtype_ptr()).names) };
-        names.extract().ok()
+    pub fn names(&self) -> Option<Vec<PyBackedStr>> {
+        self.as_borrowed().names()
     }
 
     /// Returns the type descriptor and offset of the field with the given name.
@@ -538,7 +535,7 @@ pub trait PyArrayDescrMethods<'py>: Sealed {
     /// Equivalent to [`numpy.dtype.names`][dtype-names].
     ///
     /// [dtype-names]: https://numpy.org/doc/stable/reference/generated/numpy.dtype.names.html
-    fn names(&self) -> Option<Vec<&str>>;
+    fn names(&self) -> Option<Vec<PyBackedStr>>;
 
     /// Returns the type descriptor and offset of the field with the given name.
     ///
@@ -605,7 +602,7 @@ impl<'py> PyArrayDescrMethods<'py> for Bound<'py, PyArrayDescr> {
         }
     }
 
-    fn names(&self) -> Option<Vec<&str>> {
+    fn names(&self) -> Option<Vec<PyBackedStr>> {
         if !self.has_fields() {
             return None;
         }
@@ -823,7 +820,13 @@ mod tests {
                 .is(&dtype_bound::<f64>(py)));
 
             let dt = PyArrayDescr::new_bound(py, [("a", "O"), ("b", "?")].as_ref()).unwrap();
-            assert_eq!(dt.names(), Some(vec!["a", "b"]));
+            assert_eq!(
+                dt.names().map(|names| names
+                    .iter()
+                    .map(|name| name.to_string())
+                    .collect::<Vec<String>>()),
+                Some(vec!["a".into(), "b".into()])
+            );
             assert!(dt.has_object());
             assert!(dt
                 .get_field("a")
@@ -887,7 +890,7 @@ mod tests {
             assert_eq!(dt.itemsize(), 8);
             assert_eq!(dt.alignment(), 8);
             assert!(!dt.has_object());
-            assert_eq!(dt.names(), None);
+            assert!(dt.names().is_none());
             assert!(!dt.has_fields());
             assert!(!dt.is_aligned_struct());
             assert!(!dt.has_subarray());
@@ -923,7 +926,7 @@ mod tests {
             assert_eq!(dt.itemsize(), 48);
             assert_eq!(dt.alignment(), 8);
             assert!(!dt.has_object());
-            assert_eq!(dt.names(), None);
+            assert!(dt.names().is_none());
             assert!(!dt.has_fields());
             assert!(!dt.is_aligned_struct());
             assert!(dt.has_subarray());
@@ -961,7 +964,13 @@ mod tests {
             assert_eq!(dt.itemsize(), 24);
             assert_eq!(dt.alignment(), 8);
             assert!(dt.has_object());
-            assert_eq!(dt.names(), Some(vec!["x", "y", "z"]));
+            assert_eq!(
+                dt.names().map(|names| names
+                    .iter()
+                    .map(|name| name.to_string())
+                    .collect::<Vec<String>>()),
+                Some(vec!["x".into(), "y".into(), "z".into()])
+            );
             assert!(dt.has_fields());
             assert!(dt.is_aligned_struct());
             assert!(!dt.has_subarray());
