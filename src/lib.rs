@@ -23,7 +23,7 @@ as well as the [`PyReadonlyArray::try_as_matrix`] and [`PyReadwriteArray::try_as
 //! ```
 //! use numpy::pyo3::Python;
 //! use numpy::ndarray::array;
-//! use numpy::{ToPyArray, PyArray, PyArrayMethods};
+//! use numpy::{ToPyArray, PyArrayMethods};
 //!
 //! Python::with_gil(|py| {
 //!     let py_array = array![[1i64, 2], [3, 4]].to_pyarray_bound(py);
@@ -71,6 +71,24 @@ as well as the [`PyReadonlyArray::try_as_matrix`] and [`PyReadwriteArray::try_as
 //! [ndarray]: https://numpy.org/doc/stable/reference/arrays.ndarray.html
 
 #![deny(missing_docs, missing_debug_implementations)]
+// Deny some lints in doctests.
+// Use `#[allow(...)]` locally to override.
+#![doc(test(attr(
+    deny(
+        rust_2018_idioms,
+        unused_lifetimes,
+        rust_2021_prelude_collisions,
+        warnings
+    ),
+    allow(
+        unused_variables,
+        unused_assignments,
+        unused_extern_crates,
+        // FIXME https://github.com/rust-lang/rust/issues/121621#issuecomment-1965156376
+        unknown_lints,
+        non_local_definitions,
+    )
+)))]
 
 pub mod array;
 mod array_like;

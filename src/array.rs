@@ -82,7 +82,7 @@ use crate::untyped_array::{PyUntypedArray, PyUntypedArrayMethods};
 ///
 /// ```
 /// use numpy::{PyArray, PyArrayMethods};
-/// use ndarray::{array, Array};
+/// use ndarray::array;
 /// use pyo3::Python;
 ///
 /// Python::with_gil(|py| {

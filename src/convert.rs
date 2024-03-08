@@ -20,7 +20,7 @@ use crate::slice_container::PySliceContainer;
 /// # Example
 ///
 /// ```
-/// use numpy::{PyArray, IntoPyArray, PyArrayMethods};
+/// use numpy::{IntoPyArray, PyArrayMethods};
 /// use pyo3::Python;
 ///
 /// Python::with_gil(|py| {
@@ -119,7 +119,7 @@ where
 /// # Examples
 ///
 /// ```
-/// use numpy::{PyArray, ToPyArray, PyArrayMethods};
+/// use numpy::{ToPyArray, PyArrayMethods};
 /// use pyo3::Python;
 ///
 /// Python::with_gil(|py| {

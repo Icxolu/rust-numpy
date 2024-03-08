@@ -57,7 +57,7 @@ where
 ///
 /// ```
 /// use pyo3::Python;
-/// use numpy::{inner_bound, pyarray_bound, PyArray0};
+/// use numpy::{inner_bound, pyarray_bound};
 ///
 /// Python::with_gil(|py| {
 ///     let vector = pyarray_bound![py, 1.0, 2.0, 3.0];
@@ -147,7 +147,7 @@ where
 ///
 /// ```
 /// use pyo3::Python;
-/// use numpy::{dot_bound, pyarray_bound, PyArray0};
+/// use numpy::{dot_bound, pyarray_bound};
 ///
 /// Python::with_gil(|py| {
 ///     let vector = pyarray_bound![py, 1.0, 2.0, 3.0];
