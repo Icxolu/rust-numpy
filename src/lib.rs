@@ -70,9 +70,6 @@ as well as the [`PyReadonlyArray::try_as_matrix`] and [`PyReadwriteArray::try_as
 //! [c-api]: https://numpy.org/doc/stable/reference/c-api
 //! [ndarray]: https://numpy.org/doc/stable/reference/arrays.ndarray.html
 #![deny(missing_docs)]
-// requiring `Debug` impls is not relevant without gil-refs since `&PyArray`
-// and similar aren't constructible
-#![cfg_attr(feature = "gil-refs", deny(missing_debug_implementations))]
 
 #[cfg(all(target_os = "windows", target_arch = "x86"))]
 compile_error!("Compilation for 32-bit windows is not currently supported. See https://github.com/PyO3/rust-numpy/issues/448");
@@ -111,18 +108,12 @@ pub use crate::borrow::{
     PyReadwriteArray5, PyReadwriteArray6, PyReadwriteArrayDyn,
 };
 pub use crate::convert::{IntoPyArray, NpyIndex, ToNpyDims, ToPyArray};
-#[cfg(feature = "gil-refs")]
-#[allow(deprecated)]
-pub use crate::dtype::dtype;
 pub use crate::dtype::{
     dtype_bound, Complex32, Complex64, Element, PyArrayDescr, PyArrayDescrMethods,
 };
 pub use crate::error::{BorrowError, FromVecError, NotContiguousError};
 pub use crate::npyffi::{PY_ARRAY_API, PY_UFUNC_API};
 pub use crate::strings::{PyFixedString, PyFixedUnicode};
-#[cfg(feature = "gil-refs")]
-#[allow(deprecated)]
-pub use crate::sum_products::{dot, einsum, inner};
 pub use crate::sum_products::{dot_bound, einsum_bound, inner_bound};
 pub use crate::untyped_array::{PyUntypedArray, PyUntypedArrayMethods};
 
